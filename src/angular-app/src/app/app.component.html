@@ -1,0 +1,283 @@
+<div class="bg-[#f5f7f9] min-h-screen flex flex-col">
+  <!-- Top Row: Logo and Header -->
+  <div class="flex h-[82px] shrink-0">
+    <!-- Primary Sidebar Logo -->
+    <div class="bg-sidebar w-[72px] flex items-center justify-center shrink-0">
+      <div class="relative shrink-0 size-[24px]">
+        <svg class="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
+          <path [attr.clip-rule]="'evenodd'" [attr.d]="svgPaths.pa375b00" fill="#FF3E3E" [attr.fill-rule]="'evenodd'" />
+          <path [attr.clip-rule]="'evenodd'" [attr.d]="svgPaths.p7196fc0" fill="white" [attr.fill-rule]="'evenodd'" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Main Content Header -->
+    <div class="bg-white border-b border-border px-[40px] py-[16px] flex-1">
+      <div class="flex flex-col gap-[8px]">
+        <p class="text-foreground">Hedge Accounting SFX</p>
+        <p class="caption text-muted-foreground">Configuration</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row: Sidebars and Content -->
+  <div class="flex flex-1">
+    <!-- Primary Sidebar Nav Items -->
+    <div class="bg-sidebar flex flex-col w-[72px] shrink-0">
+      <div class="bg-sidebar-primary h-[56px] flex items-center justify-center cursor-pointer">
+        <svg class="size-[24px]" fill="none" viewBox="0 0 24 24">
+          <path [attr.clip-rule]="'evenodd'" [attr.d]="svgPaths.p3a4a5600" fill="white" [attr.fill-rule]="'evenodd'" />
+        </svg>
+      </div>
+      <div class="h-[56px] flex items-center justify-center cursor-pointer hover:bg-sidebar-accent">
+        <svg class="size-[24px]" fill="none" viewBox="0 0 24 24">
+          <path [attr.clip-rule]="'evenodd'" [attr.d]="svgPaths.p150ff400" fill="#9BA4AB" [attr.fill-rule]="'evenodd'" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Secondary Navigation -->
+    <app-secondary-navigation 
+      [isExpanded]="isSecondaryNavExpanded" 
+      (toggle)="onSecondaryNavToggle()"
+      [activeItem]="activePage"
+      (itemChange)="onPageChange($event)"
+    ></app-secondary-navigation>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-auto">
+      <!-- Conditional Page Rendering -->
+      <app-gl-be-codes-page *ngIf="activePage === 'GL BE Codes'"></app-gl-be-codes-page>
+      
+      <div *ngIf="activePage === 'Instruction Builder'" class="p-[40px]">
+        <div class="bg-card rounded-lg shadow-sm border border-border max-w-[1248px] mx-auto">
+          <!-- Table Header -->
+          <div class="px-[24px] py-[16px] border-b border-border flex justify-between items-center">
+            <h3 class="h3-component text-foreground">Instruction Builder Configuration</h3>
+            <button 
+              (click)="isAddModalOpen = true"
+              class="px-[24px] py-[8px] border border-border rounded-md hover:bg-accent transition-colors"
+            >
+              <span class="caption">Add New</span>
+            </button>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto relative">
+            <table class="min-w-full">
+              <thead class="bg-accent/50">
+                <tr class="border-b border-border">
+                  <th class="w-[52px] px-[24px] py-[12px] sticky left-0 bg-accent/50 z-20"></th>
+                  <th class="px-[24px] py-[12px] text-left min-w-[140px]">
+                    <app-column-filter-dropdown
+                      [column]="'Rule ID'"
+                      [values]="mockData.map(d => d.ruleId)"
+                      [selectedValues]="filters.ruleId"
+                      (filterChange)="handleFilterChange('ruleId', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[180px]">
+                    <app-column-filter-dropdown
+                      [column]="'Business Event'"
+                      [values]="mockData.map(d => d.businessEvent)"
+                      [selectedValues]="filters.businessEvent"
+                      (filterChange)="handleFilterChange('businessEvent', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[220px]">
+                    <app-column-filter-dropdown
+                      [column]="'Hedge Method (Swap Pt)'"
+                      [values]="mockData.map(d => d.hedgeMethod)"
+                      [selectedValues]="filters.hedgeMethod"
+                      (filterChange)="handleFilterChange('hedgeMethod', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[180px]">
+                    <app-column-filter-dropdown
+                      [column]="'Currency Type'"
+                      [values]="mockData.map(d => d.currencyType)"
+                      [selectedValues]="filters.currencyType"
+                      (filterChange)="handleFilterChange('currencyType', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[200px]">
+                    <app-column-filter-dropdown
+                      [column]="'Hedging Instrument'"
+                      [values]="mockData.map(d => d.hedgingInstrument)"
+                      [selectedValues]="filters.hedgingInstrument"
+                      (filterChange)="handleFilterChange('hedgingInstrument', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[140px]">
+                    <app-column-filter-dropdown
+                      [column]="'Status'"
+                      [values]="mockData.map(d => d.status)"
+                      [selectedValues]="filters.status"
+                      (filterChange)="handleFilterChange('status', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[140px]">
+                    <app-column-filter-dropdown
+                      [column]="'NAV Type'"
+                      [values]="mockData.map(d => d.navType)"
+                      [selectedValues]="filters.navType"
+                      (filterChange)="handleFilterChange('navType', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[180px]">
+                    <app-column-filter-dropdown
+                      [column]="'Updated By'"
+                      [values]="mockData.map(d => d.updatedBy)"
+                      [selectedValues]="filters.updatedBy"
+                      (filterChange)="handleFilterChange('updatedBy', $event)"
+                    ></app-column-filter-dropdown>
+                  </th>
+                  <th class="px-[16px] py-[12px] text-left min-w-[240px]">
+                    <app-date-column-filter
+                      [column]="'Last Updated'"
+                      (dateRangeChange)="handleDateRangeChange($event.start, $event.end)"
+                    ></app-date-column-filter>
+                  </th>
+                  <th class="w-[80px] px-[8px] py-[12px] sticky right-0 bg-accent/50 z-20"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let row of filteredData">
+                  <!-- Main Row -->
+                  <tr class="border-b border-border hover:bg-accent/30 transition-colors">
+                    <td class="px-[24px] py-[12px] sticky left-0 bg-card z-10 border-r border-border">
+                      <button 
+                        (click)="toggleRow(row.id)"
+                        class="p-[2px] hover:bg-accent rounded transition-colors"
+                      >
+                        <svg *ngIf="isRowExpanded(row.id)" class="w-[20px] h-[20px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <svg *ngIf="!isRowExpanded(row.id)" class="w-[20px] h-[20px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td class="px-[24px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.ruleId}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.businessEvent}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.hedgeMethod}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.currencyType}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.hedgingInstrument}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <span [class]="'badge px-[8px] py-[2px] rounded-full ' + getStatusClass(row.status)">
+                        {{row.status}}
+                      </span>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.navType}}</p>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <div class="flex items-center gap-[8px]">
+                        <div class="relative shrink-0 size-[24px]">
+                          <div class="absolute inset-0 rounded-full bg-[#FFB5B9] flex items-center justify-center">
+                            <span class="badge text-[#455057]">A</span>
+                          </div>
+                        </div>
+                        <p class="caption text-foreground">{{row.updatedBy}}</p>
+                      </div>
+                    </td>
+                    <td class="px-[16px] py-[12px] whitespace-nowrap">
+                      <p class="caption text-foreground">{{row.lastUpdated}}</p>
+                    </td>
+                    <td class="px-[8px] py-[12px] sticky right-0 bg-card z-10 border-l border-border">
+                      <div class="flex gap-[8px] justify-end">
+                        <button 
+                          (click)="row.status === 'Active' ? handleEditClick(row) : handleViewClick(row)"
+                          class="p-[4px] hover:bg-accent rounded transition-colors"
+                        >
+                          <svg *ngIf="row.status === 'Active'" class="w-[16px] h-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          <svg *ngIf="row.status !== 'Active'" class="w-[16px] h-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <app-row-action-menu
+                          [status]="row.status"
+                          (activate)="handleActivate(row.ruleId)"
+                          (inactivate)="handleInactivate(row.ruleId)"
+                          (auditLog)="handleAuditLog(row.ruleId)"
+                        ></app-row-action-menu>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Expanded Sub-table -->
+                  <tr *ngIf="isRowExpanded(row.id) && row.murexBookings.length > 0">
+                    <td colspan="11" class="bg-[#f7f7f7] p-0">
+                      <div class="overflow-x-auto py-[12px]">
+                        <table class="w-full border-collapse">
+                          <thead class="bg-[#f7f7f7]">
+                            <tr class="border-b border-border">
+                              <th class="w-[52px] px-[24px] py-[8px]"></th>
+                              <th class="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
+                                <label class="text-muted-foreground">Murex Booking Codes</label>
+                              </th>
+                              <th class="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
+                                <label class="text-muted-foreground">GL BE Codes</label>
+                              </th>
+                              <th class="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
+                                <label class="text-muted-foreground"></label>
+                              </th>
+                              <th class="px-[8px] py-[8px] w-full"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let booking of row.murexBookings" class="border-b border-border last:border-b-0">
+                              <td class="px-[24px] py-[12px] bg-[#f7f7f7]"></td>
+                              <td class="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
+                                <p class="caption text-foreground">{{booking.code}}</p>
+                              </td>
+                              <td class="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
+                                <p class="caption text-foreground">{{booking.glBeCodes[0]}}</p>
+                              </td>
+                              <td class="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
+                                <p class="caption text-foreground">{{booking.glBeCodes[1] || ''}}</p>
+                              </td>
+                              <td class="px-[8px] py-[12px] bg-[#f7f7f7]"></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Rule Modal -->
+<app-add-rule-modal 
+  [isOpen]="isAddModalOpen" 
+  (close)="onAddModalClose()"
+  [nextRuleId]="getNextRuleId()"
+></app-add-rule-modal>
+
+<!-- Edit/View Rule Modal -->
+<app-edit-rule-modal
+  [isOpen]="isEditModalOpen"
+  (close)="onEditModalClose()"
+  [ruleData]="selectedRule"
+  [mode]="editMode"
+></app-edit-rule-modal>
