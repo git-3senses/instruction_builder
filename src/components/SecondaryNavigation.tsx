@@ -20,8 +20,9 @@ export function SecondaryNavigation({ isExpanded, onToggle, activeItem, onItemCh
     'Portfolio',
     'Product',
     'Murex Booking Codes',
-    'GL BE Codes',
     'Instruction Builder',
+    'GL BE Codes',
+    'Event Builder',
     'Adjustment'
   ];
 

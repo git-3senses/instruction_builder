@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { X, Trash2, ChevronDown, Pencil, Save } from './icons';
-import { MultiSelectDropdown } from './MultiSelectDropdown';
 
 interface AddRuleModalProps {
   isOpen: boolean;
@@ -10,9 +9,6 @@ interface AddRuleModalProps {
 
 interface CombinedRow {
   murexCode: string;
-  glBeCode1: string;
-  glBeCode2: string;
-  entityType: string[];
   isNew: boolean;
 }
 
@@ -38,9 +34,6 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
     const newIndex = combinedRows.length;
     setCombinedRows([...combinedRows, { 
       murexCode: '', 
-      glBeCode1: '', 
-      glBeCode2: '', 
-      entityType: [], 
       isNew: true 
     }]);
     setEditingRows(new Set([...editingRows, newIndex]));
@@ -142,7 +135,7 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
                 <div className="w-[200px] flex-shrink-0">
                   <p className="text-foreground">Global Murex & GL BE Codes</p>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 max-w-[884px]">
                   {/* Filter Section */}
                   <div className="bg-accent rounded-[8px] p-[16px]">
                     <div className="grid grid-cols-2 gap-x-[16px] gap-y-[24px]">
@@ -236,9 +229,12 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
               </div>
 
               {/* Table Section */}
-              <div className="border border-border rounded-[8px] overflow-hidden">
-                <div className="bg-white border-b border-border px-[24px] py-[16px] flex justify-between items-center">
-                  <h3 className="h3-component text-foreground">Global Murex & GL BE Codes</h3>
+              <div className="flex gap-[24px]">
+                <div className="w-[200px] flex-shrink-0"></div>
+                <div className="flex-1 max-w-[884px]">
+                  <div className="border border-border rounded-[8px] overflow-hidden">
+                    <div className="bg-white border-b border-border px-[24px] py-[16px] flex justify-between items-center">
+                  <h3 className="h3-component text-foreground">Murex Book Codes</h3>
                   <button
                     onClick={addNewRow}
                     className="px-[24px] py-[8px] border border-border rounded-[4px] hover:bg-accent transition-colors"
@@ -251,21 +247,17 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
                   <thead className="bg-white">
                     <tr className="border-b border-border">
                       <th className="px-[8px] py-[8px] text-left whitespace-nowrap">
-                        <label className="text-muted-foreground">Murex Book Code</label>
+                        <label className="text-muted-foreground">Murex Bookings</label>
                       </th>
-                      <th className="px-[8px] py-[8px] text-left border-l border-border" colSpan={2}>
-                        <label className="text-muted-foreground">GL BE Codes</label>
+                      <th className="w-[100px] px-[8px] py-[8px] sticky right-0 bg-white z-10">
+                        <label className="text-muted-foreground">Action Item</label>
                       </th>
-                      <th className="px-[8px] py-[8px] text-left border-l border-border whitespace-nowrap">
-                        <label className="text-muted-foreground">Entity Type</label>
-                      </th>
-                      <th className="w-[100px] px-[8px] py-[8px] sticky right-0 bg-white z-10"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {combinedRows.length === 0 ? (
                       <tr className="bg-white">
-                        <td colSpan={5} className="px-[24px] py-[32px] text-center">
+                        <td colSpan={2} className="px-[24px] py-[32px] text-center">
                           <p className="caption text-muted-foreground">No rows added yet. Click "Add New Row" to get started.</p>
                         </td>
                       </tr>
@@ -297,74 +289,8 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
                               )}
                             </td>
 
-                            {/* GL BE Code 1 */}
-                            <td className="px-[8px] py-[4px] border-l border-border whitespace-nowrap">
-                              {isEditing ? (
-                                <div className="relative min-w-[300px]">
-                                  <select
-                                    value={row.glBeCode1}
-                                    onChange={(e) => updateRow(idx, 'glBeCode1', e.target.value)}
-                                    className="w-full h-[36px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-muted-foreground caption appearance-none cursor-pointer"
-                                  >
-                                    <option value="">Select GL BE Code</option>
-                                    <option value="SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU">SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU</option>
-                                    <option value="SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU">SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU</option>
-                                    <option value="SG_HAWK_DR_COILOCKBACKFXGAIN_BR">SG_HAWK_DR_COILOCKBACKFXGAIN_BR</option>
-                                    <option value="SG_HAWK_CR_COILOCKBACKFXLOSS_BR">SG_HAWK_CR_COILOCKBACKFXLOSS_BR</option>
-                                  </select>
-                                  <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground pointer-events-none" />
-                                </div>
-                              ) : (
-                                <p className="caption text-foreground px-[12px] py-[6px]">{row.glBeCode1 || '-'}</p>
-                              )}
-                            </td>
-
-                            {/* GL BE Code 2 */}
-                            <td className="px-[8px] py-[4px] whitespace-nowrap">
-                              {isEditing ? (
-                                <div className="relative min-w-[300px]">
-                                  <select
-                                    value={row.glBeCode2}
-                                    onChange={(e) => updateRow(idx, 'glBeCode2', e.target.value)}
-                                    className="w-full h-[36px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-muted-foreground caption appearance-none cursor-pointer"
-                                  >
-                                    <option value="">Select GL BE Code</option>
-                                    <option value="SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU">SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU</option>
-                                    <option value="SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU">SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU</option>
-                                    <option value="SG_HAWK_DR_COILOCKBACKFXGAIN_BR">SG_HAWK_DR_COILOCKBACKFXGAIN_BR</option>
-                                    <option value="SG_HAWK_CR_COILOCKBACKFXLOSS_BR">SG_HAWK_CR_COILOCKBACKFXLOSS_BR</option>
-                                  </select>
-                                  <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground pointer-events-none" />
-                                </div>
-                              ) : (
-                                <p className="caption text-foreground px-[12px] py-[6px]">{row.glBeCode2 || '-'}</p>
-                              )}
-                            </td>
-
-                            {/* Entity Type */}
-                            <td className="px-[8px] py-[4px] border-l border-border">
-                              {isEditing ? (
-                                <MultiSelectDropdown
-                                  options={['All', 'Branch', 'Associate', 'Subsidiary']}
-                                  selectedValues={row.entityType}
-                                  onChange={(values) => updateRow(idx, 'entityType', values)}
-                                  placeholder="Select entity types"
-                                />
-                              ) : (
-                                <div className="flex flex-nowrap gap-[8px] px-[12px] py-[6px] overflow-x-auto">
-                                  {row.entityType.length > 0 ? (
-                                    row.entityType.map(type => (
-                                      <span key={type} className="badge px-[8px] py-[2px] bg-muted text-foreground rounded-[4px] whitespace-nowrap">{type}</span>
-                                    ))
-                                  ) : (
-                                    <span className="caption text-muted-foreground">-</span>
-                                  )}
-                                </div>
-                              )}
-                            </td>
-
                             {/* Actions */}
-                            <td className="px-[8px] py-[4px] sticky right-0 bg-white z-10 border-l border-border">
+                            <td className="px-[8px] py-[4px] sticky right-0 bg-white z-10">
                               <div className="flex gap-[8px] justify-end">
                                 <button
                                   onClick={() => toggleEdit(idx)}
@@ -392,6 +318,8 @@ export function AddRuleModal({ isOpen, onClose, nextRuleId }: AddRuleModalProps)
                 </table>
               </div>
             </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

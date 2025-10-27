@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/vssvi/OneDrive/Desktop/Library Components/HAWK-SFX_ Config - Inbound Instruction (Copy)/**)",
+      "Read(//c/Users/vssvi/Downloads/event_builder_final/**)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

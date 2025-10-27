@@ -1,38 +1,46 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, ChevronDown, Pencil, Save } from './icons';
+import { X, ChevronDown, Pencil, Save, Trash2 } from './icons';
+import { 
+  ENTITY_TYPE_OPTIONS, 
+  BUSINESS_EVENT_OPTIONS, 
+  HEDGE_METHOD_OPTIONS,
+  CURRENCY_TYPE_OPTIONS,
+  HEDGING_INSTRUMENT_OPTIONS,
+  NAV_TYPE_OPTIONS,
+  GL_BE_CODE_OPTIONS
+} from './eventBuilderConstants';
 
-interface MurexBooking {
-  code: string;
-  glBeCodes: string[];
-}
-
-interface RuleData {
-  id: string;
-  ruleId: string;
+interface EventRow {
+  eventId: string;
   businessEvent: string;
   hedgeMethod: string;
   currencyType: string;
   hedgingInstrument: string;
-  navType: string;
   status: string;
+  navType: string;
   updatedBy: string;
   lastUpdated: string;
-  murexBookings: MurexBooking[];
+  glBeCodes: Array<{
+    code: string;
+    entityType: string;
+  }>;
 }
 
-interface EditRuleModalProps {
+interface EventBuilderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ruleData: RuleData | null;
-  mode: 'edit' | 'view';
+  mode: 'add' | 'edit' | 'view';
+  nextEventId?: string;
+  rowData?: EventRow;
 }
 
-interface CombinedRow {
-  murexCode: string;
-  isNew: boolean;
+interface GLBeCodeRow {
+  beCode: string;
+  entityType: string[];
+  isEditing: boolean;
 }
 
-export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModalProps) {
+export function EventBuilderModal({ isOpen, onClose, mode, nextEventId, rowData }: EventBuilderModalProps) {
   const [status, setStatus] = useState('Active');
   const [description, setDescription] = useState('');
   const [businessEvent, setBusinessEvent] = useState('');
@@ -41,72 +49,78 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
   const [hedgingInstrument, setHedgingInstrument] = useState('');
   const [navType, setNavType] = useState('');
 
-  const [combinedRows, setCombinedRows] = useState<CombinedRow[]>([]);
-  const [editingRows, setEditingRows] = useState<Set<number>>(new Set());
+  const [glBeCodeRows, setGlBeCodeRows] = useState<GLBeCodeRow[]>([
+    { beCode: 'SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU', entityType: ['All'], isEditing: false },
+    { beCode: 'SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU', entityType: ['Branch', 'Subsi'], isEditing: false },
+    { beCode: 'SG_HAWK_DR_COILOCKBACKFXGAIN_BR', entityType: ['Assoc', 'Tmu'], isEditing: false },
+  ]);
 
-  const businessEventOptions = ['Inception', 'Utilization', 'Rollover', 'Termination'];
-  const hedgeMethodOptions = ['MTM', 'COH'];
-  const currencyTypeOptions = ['Restricted', 'Non-Restricted'];
-  const hedgingInstrumentOptions = ['FX Swap', 'FX NDF', 'IRD Xccy Swap'];
-  const navTypeOptions = ['COI', 'RE+reserves'];
+  // Populate form fields when rowData is provided (edit or view mode)
+  useEffect(() => {
+    if (rowData && (mode === 'edit' || mode === 'view')) {
+      setBusinessEvent(rowData.businessEvent);
+      setHedgeMethod(rowData.hedgeMethod);
+      setCurrencyType(rowData.currencyType);
+      setHedgingInstrument(rowData.hedgingInstrument);
+      setStatus(rowData.status);
+      setNavType(rowData.navType);
+      
+      // Convert glBeCodes from page format to modal format
+      const convertedRows = rowData.glBeCodes.map(glBeCode => ({
+        beCode: glBeCode.code,
+        entityType: [glBeCode.entityType], // Convert string to array
+        isEditing: false
+      }));
+      setGlBeCodeRows(convertedRows);
+    } else if (mode === 'add') {
+      // Reset form for add mode
+      setBusinessEvent('');
+      setHedgeMethod('');
+      setCurrencyType('');
+      setHedgingInstrument('');
+      setStatus('Active');
+      setNavType('');
+      setGlBeCodeRows([
+        { beCode: 'SG_HAWK_DR_UHDCOILOCKBACKFXGAIN_TMU', entityType: ['All'], isEditing: false },
+        { beCode: 'SG_HAWK_CR_UHDCOILOCKBACKFXLOSS_TMU', entityType: ['Branch', 'Subsi'], isEditing: false },
+        { beCode: 'SG_HAWK_DR_COILOCKBACKFXGAIN_BR', entityType: ['Assoc', 'Tmu'], isEditing: false },
+      ]);
+    }
+  }, [rowData, mode]);
+
+  const businessEventOptions = BUSINESS_EVENT_OPTIONS;
+  const hedgeMethodOptions = HEDGE_METHOD_OPTIONS;
+  const currencyTypeOptions = CURRENCY_TYPE_OPTIONS;
+  const hedgingInstrumentOptions = HEDGING_INSTRUMENT_OPTIONS;
+  const navTypeOptions = NAV_TYPE_OPTIONS;
+  const glBeCodeOptions = GL_BE_CODE_OPTIONS;
+  const entityTypeOptions = ENTITY_TYPE_OPTIONS;
 
   const isReadOnly = mode === 'view';
-
-  useEffect(() => {
-    if (ruleData) {
-      setStatus(ruleData.status);
-      setBusinessEvent(ruleData.businessEvent);
-      setHedgeMethod(ruleData.hedgeMethod);
-      setCurrencyType(ruleData.currencyType);
-      setHedgingInstrument(ruleData.hedgingInstrument);
-      setNavType(ruleData.navType);
-      setDescription(`Rule configuration for ${ruleData.businessEvent} - ${ruleData.hedgingInstrument}`);
-      
-      // Convert murex bookings to combined rows
-      const rows: CombinedRow[] = ruleData.murexBookings.map(mb => ({
-        murexCode: mb.code,
-        isNew: false
-      }));
-      setCombinedRows(rows);
-    }
-  }, [ruleData]);
+  const title = mode === 'add' ? 'Add New Event' : mode === 'edit' ? 'Edit Event' : 'View Event';
 
   const addNewRow = () => {
-    if (!isReadOnly) {
-      const newIndex = combinedRows.length;
-      setCombinedRows([...combinedRows, { 
-        murexCode: '', 
-        isNew: true 
-      }]);
-      setEditingRows(new Set([...editingRows, newIndex]));
-    }
+    setGlBeCodeRows([...glBeCodeRows, { 
+      beCode: '', 
+      entityType: [], 
+      isEditing: true 
+    }]);
   };
 
   const removeRow = (index: number) => {
-    if (!isReadOnly) {
-      setCombinedRows(combinedRows.filter((_, i) => i !== index));
-      const newEditingRows = new Set(editingRows);
-      newEditingRows.delete(index);
-      setEditingRows(newEditingRows);
-    }
+    setGlBeCodeRows(glBeCodeRows.filter((_, i) => i !== index));
   };
 
-  const toggleEdit = (index: number) => {
-    if (isReadOnly) return;
-    const newEditingRows = new Set(editingRows);
-    if (newEditingRows.has(index)) {
-      newEditingRows.delete(index);
-    } else {
-      newEditingRows.add(index);
-    }
-    setEditingRows(newEditingRows);
+  const toggleEditRow = (index: number) => {
+    const newRows = [...glBeCodeRows];
+    newRows[index].isEditing = !newRows[index].isEditing;
+    setGlBeCodeRows(newRows);
   };
 
-  const updateRow = (index: number, field: keyof CombinedRow, value: any) => {
-    if (isReadOnly) return;
-    const newRows = [...combinedRows];
+  const updateRow = (index: number, field: keyof GLBeCodeRow, value: any) => {
+    const newRows = [...glBeCodeRows];
     newRows[index] = { ...newRows[index], [field]: value };
-    setCombinedRows(newRows);
+    setGlBeCodeRows(newRows);
   };
 
   const handleSave = () => {
@@ -114,7 +128,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
     onClose();
   };
 
-  if (!isOpen || !ruleData) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[24px] pb-0 bg-gradient-to-b from-[rgba(23,24,26,0.49)] to-[rgba(113,118,128,0.7)]">
@@ -122,9 +136,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
         {/* Header */}
         <div className="bg-white border-b border-border px-[96px] py-[24px] rounded-tl-[8px] rounded-tr-[8px] shadow-sm flex-shrink-0">
           <div className="flex items-center justify-between max-w-[1248px] mx-auto">
-            <h3 className="h3-component text-foreground">
-              {isReadOnly ? 'View Rule Config' : 'Edit Rule Config'}
-            </h3>
+            <h3 className="h3-component text-foreground">{title}</h3>
             <button
               onClick={onClose}
               className="p-[4px] hover:bg-accent rounded transition-colors"
@@ -137,16 +149,20 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-[96px] py-[24px]">
           <div className="flex flex-col gap-[16px] max-w-[1248px] mx-auto">
-            {/* Config Information Section */}
+            {/* Event Information Section */}
             <div className="bg-white rounded-[8px] shadow-sm border border-border p-[24px] flex gap-[24px]">
               <div className="w-[270px] flex-shrink-0">
-                <p className="text-foreground">Config Information</p>
+                <p className="text-foreground">Event Information</p>
               </div>
               <div className="flex-1 flex flex-col gap-[24px] max-w-[884px]">
                 <div className="flex gap-[24px]">
                   <div className="flex-1">
-                    <label className="text-muted-foreground mb-[4px] block">Rule ID</label>
-                    <p className="text-foreground">{ruleData.ruleId}</p>
+                    <label className="text-muted-foreground mb-[4px] block">Event ID</label>
+                    {mode === 'add' ? (
+                      <p className="text-foreground">{nextEventId || 'EVT001'}</p>
+                    ) : (
+                      <p className="text-foreground">EVT001</p>
+                    )}
                   </div>
                   <div className="w-[276px]">
                     <label className="text-muted-foreground mb-[4px] block">Status</label>
@@ -168,9 +184,9 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                   </div>
                 </div>
                 <div>
-                  <label className="text-muted-foreground mb-[4px] block">Description</label>
+                  <label className="text-muted-foreground mb-[4px] block">Description <span className="text-[#d32f2f]">*</span></label>
                   {isReadOnly ? (
-                    <p className="text-foreground">{description}</p>
+                    <p className="text-foreground">{description || 'Event description'}</p>
                   ) : (
                     <>
                       <textarea
@@ -178,6 +194,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                         onChange={(e) => setDescription(e.target.value)}
                         maxLength={400}
                         className="w-full min-h-[80px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-foreground resize-y"
+                        placeholder="Enter event description..."
                       />
                       <p className="caption text-muted-foreground text-right mt-[4px]">{description.length}/400</p>
                     </>
@@ -186,12 +203,12 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
               </div>
             </div>
 
-            {/* Global Murex & GL BE Codes Section */}
+            {/* GL BE Codes Section */}
             <div className="bg-white rounded-[8px] shadow-sm border border-border p-[24px] flex flex-col">
               {/* Section Label and Form Fields Row */}
               <div className="flex gap-[24px] mb-[24px]">
                 <div className="w-[200px] flex-shrink-0">
-                  <p className="text-foreground">Global Murex & GL BE Codes</p>
+                  <p className="text-foreground">GL BE Codes</p>
                 </div>
                 <div className="flex-1 max-w-[884px]">
                   {/* Filter Section */}
@@ -200,7 +217,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                       <div>
                         <label className="text-muted-foreground mb-[4px] block">Business Event</label>
                         {isReadOnly ? (
-                          <p className="text-foreground">{businessEvent}</p>
+                          <p className="text-foreground h-[40px] flex items-center px-[12px]">{businessEvent || '-'}</p>
                         ) : (
                           <div className="relative">
                             <select
@@ -219,9 +236,9 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                       </div>
 
                       <div>
-                        <label className="text-muted-foreground mb-[4px] block">Hedge Method (Swap Pt)</label>
+                        <label className="text-muted-foreground mb-[4px] block">Hedge Method</label>
                         {isReadOnly ? (
-                          <p className="text-foreground">{hedgeMethod}</p>
+                          <p className="text-foreground h-[40px] flex items-center px-[12px]">{hedgeMethod || '-'}</p>
                         ) : (
                           <div className="relative">
                             <select
@@ -242,7 +259,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                       <div>
                         <label className="text-muted-foreground mb-[4px] block">Currency Type</label>
                         {isReadOnly ? (
-                          <p className="text-foreground">{currencyType}</p>
+                          <p className="text-foreground h-[40px] flex items-center px-[12px]">{currencyType || '-'}</p>
                         ) : (
                           <div className="relative">
                             <select
@@ -263,7 +280,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                       <div>
                         <label className="text-muted-foreground mb-[4px] block">Hedging Instrument</label>
                         {isReadOnly ? (
-                          <p className="text-foreground">{hedgingInstrument}</p>
+                          <p className="text-foreground h-[40px] flex items-center px-[12px]">{hedgingInstrument || '-'}</p>
                         ) : (
                           <div className="relative">
                             <select
@@ -284,7 +301,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                       <div>
                         <label className="text-muted-foreground mb-[4px] block">NAV Type</label>
                         {isReadOnly ? (
-                          <p className="text-foreground">{navType}</p>
+                          <p className="text-foreground h-[40px] flex items-center px-[12px]">{navType || '-'}</p>
                         ) : (
                           <div className="relative">
                             <select
@@ -312,7 +329,7 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                 <div className="flex-1 max-w-[884px]">
                   <div className="border border-border rounded-[8px] overflow-hidden">
                     <div className="bg-white border-b border-border px-[24px] py-[16px] flex justify-between items-center">
-                  <h3 className="h3-component text-foreground">Murex Book Codes</h3>
+                  <h3 className="h3-component text-foreground">GL BE Codes Table</h3>
                   {!isReadOnly && (
                     <button
                       onClick={addNewRow}
@@ -324,78 +341,118 @@ export function EditRuleModal({ isOpen, onClose, ruleData, mode }: EditRuleModal
                 </div>
                 <div className="overflow-x-auto relative">
                   <table className="w-full">
-                  <thead className="bg-white">
-                    <tr className="border-b border-border">
-                      <th className="px-[8px] py-[8px] text-left whitespace-nowrap">
-                        <label className="text-muted-foreground">Murex Bookings</label>
-                      </th>
-                      {!isReadOnly && (
-                        <th className="w-[100px] px-[8px] py-[8px] sticky right-0 bg-white z-10">
-                          <label className="text-muted-foreground">Action Item</label>
+                    <thead className="bg-white">
+                      <tr className="border-b border-border">
+                        <th className="px-[8px] py-[8px] text-left whitespace-nowrap">
+                          <label className="text-muted-foreground">GL BE Code</label>
                         </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {combinedRows.map((row, idx) => {
-                      const isEditing = editingRows.has(idx);
-                      return (
-                        <tr key={idx} className="border-b border-border bg-white">
-                          {/* Murex Book Code */}
-                          <td className="px-[8px] py-[4px] whitespace-nowrap">
-                            {isReadOnly ? (
-                              <p className="caption text-foreground px-[12px] py-[6px]">{row.murexCode}</p>
-                            ) : isEditing ? (
-                              <div className="relative min-w-[220px]">
-                                <select
-                                  value={row.murexCode}
-                                  onChange={(e) => updateRow(idx, 'murexCode', e.target.value)}
-                                  className="w-full h-[36px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-muted-foreground caption appearance-none cursor-pointer"
-                                >
-                                  <option value="">Select Murex Book Code</option>
-                                  <option value="SPOT_MIRR_INTMD_COI">SPOT_MIRR_INTMD_COI</option>
-                                  <option value="SPOT_CLOSE_UHCOI_COI">SPOT_CLOSE_UHCOI_COI</option>
-                                  <option value="SWAP_MIRR_INSTC_COIRE">SWAP_MIRR_INSTC_COIRE</option>
-                                  <option value="SWAP_CLOSE_UHCOI_COI">SWAP_CLOSE_UHCOI_COI</option>
-                                  <option value="FWD_MIRR_INTMD_COI">FWD_MIRR_INTMD_COI</option>
-                                </select>
-                                <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground pointer-events-none" />
-                              </div>
-                            ) : (
-                              <p className="caption text-foreground px-[12px] py-[6px]">{row.murexCode}</p>
-                            )}
+                        <th className="px-[8px] py-[8px] text-left whitespace-nowrap">
+                          <label className="text-muted-foreground">Entity Type</label>
+                        </th>
+                        <th className="w-[100px] px-[8px] py-[8px] sticky right-0 bg-white z-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {glBeCodeRows.length === 0 ? (
+                        <tr className="bg-white">
+                          <td colSpan={3} className="px-[24px] py-[32px] text-center">
+                            <p className="caption text-muted-foreground">No rows added yet. Click "Add New Row" to get started.</p>
                           </td>
-
-                          {/* Actions */}
-                          {!isReadOnly && (
-                            <td className="px-[8px] py-[4px] sticky right-0 bg-white z-10">
-                              <div className="flex gap-[8px] justify-end">
-                                <button
-                                  onClick={() => toggleEdit(idx)}
-                                  className="p-[4px] hover:bg-accent rounded transition-colors"
-                                >
-                                  {isEditing ? (
-                                    <Save className="w-[16px] h-[16px] text-muted-foreground" />
+                        </tr>
+                      ) : (
+                        glBeCodeRows.map((row, idx) => (
+                          <tr key={idx} className="border-b border-border bg-white">
+                            {/* GL BE Code */}
+                            <td className="px-[8px] py-[4px] whitespace-nowrap">
+                              {row.isEditing ? (
+                                <div className="relative min-w-[300px]">
+                                  <select
+                                    value={row.beCode}
+                                    onChange={(e) => updateRow(idx, 'beCode', e.target.value)}
+                                    className="w-full h-[36px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-muted-foreground caption appearance-none cursor-pointer"
+                                  >
+                                    <option value="">Select GL BE Code</option>
+                                    {glBeCodeOptions.map(code => (
+                                      <option key={code} value={code}>{code}</option>
+                                    ))}
+                                  </select>
+                                  <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground pointer-events-none" />
+                                </div>
+                              ) : (
+                                <p className="caption text-foreground px-[12px] py-[6px]">{row.beCode || '-'}</p>
+                              )}
+                            </td>
+                            
+                            {/* Entity Type */}
+                            <td className="px-[8px] py-[4px]">
+                              {row.isEditing ? (
+                                <div className="relative min-w-[200px]">
+                                  <select
+                                    value={row.entityType.length === 1 ? row.entityType[0] : ''}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === 'All') {
+                                        updateRow(idx, 'entityType', ['All']);
+                                      } else if (value) {
+                                        updateRow(idx, 'entityType', [value]);
+                                      } else {
+                                        updateRow(idx, 'entityType', []);
+                                      }
+                                    }}
+                                    className="w-full h-[36px] px-[12px] py-[8px] bg-white border border-[#b0b9c0] rounded-[4px] text-muted-foreground caption appearance-none cursor-pointer"
+                                  >
+                                    <option value="">Select Entity Type</option>
+                                    {entityTypeOptions.map(entity => (
+                                      <option key={entity} value={entity}>{entity}</option>
+                                    ))}
+                                  </select>
+                                  <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground pointer-events-none" />
+                                </div>
+                              ) : (
+                                <div className="flex flex-nowrap gap-[8px] px-[12px] py-[6px] overflow-x-auto">
+                                  {row.entityType.length > 0 ? (
+                                    row.entityType.map(type => (
+                                      <span key={type} className="badge px-[8px] py-[2px] bg-muted text-foreground rounded-[4px] whitespace-nowrap">{type}</span>
+                                    ))
                                   ) : (
-                                    <Pencil className="w-[16px] h-[16px] text-muted-foreground" />
+                                    <span className="caption text-muted-foreground">-</span>
                                   )}
-                                </button>
-                                <button
-                                  onClick={() => removeRow(idx)}
-                                  className="p-[4px] hover:bg-accent rounded transition-colors"
-                                >
-                                  <Trash2 className="w-[16px] h-[16px] text-muted-foreground" />
-                                </button>
+                                </div>
+                              )}
+                            </td>
+                            
+                            {/* Actions */}
+                            <td className="px-[8px] py-[4px] sticky right-0 bg-white z-10 border-l border-border">
+                              <div className="flex gap-[8px] justify-end">
+                                {!isReadOnly && (
+                                  <>
+                                    <button
+                                      onClick={() => toggleEditRow(idx)}
+                                      className="p-[4px] hover:bg-accent rounded transition-colors"
+                                    >
+                                      {row.isEditing ? (
+                                        <Save className="w-[16px] h-[16px] text-muted-foreground" />
+                                      ) : (
+                                        <Pencil className="w-[16px] h-[16px] text-muted-foreground" />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => removeRow(idx)}
+                                      className="p-[4px] hover:bg-accent rounded transition-colors"
+                                    >
+                                      <Trash2 className="w-[16px] h-[16px] text-muted-foreground" />
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
                 </div>
               </div>
             </div>

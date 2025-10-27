@@ -6,6 +6,7 @@ import { EditRuleModal } from './components/EditRuleModal';
 import { RowActionMenu } from './components/RowActionMenu';
 import { SecondaryNavigation } from './components/SecondaryNavigation';
 import { GLBeCodesPage } from './components/GLBeCodesPage';
+import { EventBuilderPage } from './components/EventBuilderPage';
 import { ColumnFilterDropdown } from './components/ColumnFilterDropdown';
 import { DateColumnFilter } from './components/DateColumnFilter';
 
@@ -265,7 +266,16 @@ export default function App() {
         {/* Conditional Page Rendering */}
         {activePage === 'GL BE Codes' ? (
           <GLBeCodesPage />
-        ) : (
+        ) : activePage === 'Event Builder' ? (
+          <EventBuilderPage />
+        ) : activePage === 'Adjustment' ? (
+          <div className="p-[40px]">
+            <div className="max-w-[1248px] mx-auto">
+              <h2 className="h2-component text-foreground mb-[24px]">Adjustment</h2>
+              <p className="text-muted-foreground">Adjustment page coming soon...</p>
+            </div>
+          </div>
+        ) : activePage === 'Instruction Builder' ? (
           <div className="p-[40px]">
           <div className="bg-card rounded-lg shadow-sm border border-border max-w-[1248px] mx-auto">
             {/* Table Header */}
@@ -458,13 +468,7 @@ export default function App() {
                                   <tr className="border-b border-border">
                                     <th className="w-[52px] px-[24px] py-[8px]"></th>
                                     <th className="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
-                                      <label className="text-muted-foreground">Murex Booking Codes</label>
-                                    </th>
-                                    <th className="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
-                                      <label className="text-muted-foreground">GL BE Codes</label>
-                                    </th>
-                                    <th className="px-[8px] py-[8px] text-left whitespace-nowrap w-auto">
-                                      <label className="text-muted-foreground"></label>
+                                      <label className="text-muted-foreground">Murex Book Code</label>
                                     </th>
                                     <th className="px-[8px] py-[8px] w-full"></th>
                                   </tr>
@@ -475,12 +479,6 @@ export default function App() {
                                       <td className="px-[24px] py-[12px] bg-[#f7f7f7]"></td>
                                       <td className="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
                                         <p className="caption text-foreground">{booking.code}</p>
-                                      </td>
-                                      <td className="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
-                                        <p className="caption text-foreground">{booking.glBeCodes[0]}</p>
-                                      </td>
-                                      <td className="px-[8px] py-[12px] bg-[#f7f7f7] whitespace-nowrap">
-                                        <p className="caption text-foreground">{booking.glBeCodes[1] || ''}</p>
                                       </td>
                                       <td className="px-[8px] py-[12px] bg-[#f7f7f7]"></td>
                                     </tr>
@@ -498,6 +496,13 @@ export default function App() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="p-[40px]">
+            <div className="max-w-[1248px] mx-auto">
+              <h2 className="h2-component text-foreground mb-[24px]">{activePage}</h2>
+              <p className="text-muted-foreground">{activePage} page coming soon...</p>
+            </div>
+          </div>
         )}
       </div>
       </div>

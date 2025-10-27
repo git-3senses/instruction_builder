@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Eye, MoreVertical, Pencil } from './icons';
+import { Eye, MoreVertical, Pencil, Upload } from './icons';
 import { GLBeCodeModal } from './GLBeCodeModal';
 import { RowActionMenu } from './RowActionMenu';
 import { ColumnFilterDropdown } from './ColumnFilterDropdown';
 import { DateColumnFilter } from './DateColumnFilter';
+import { UploadDrawer } from './UploadDrawer';
 import {
   Pagination,
   PaginationContent,
@@ -454,6 +455,7 @@ export function GLBeCodesPage() {
   const [selectedCode, setSelectedCode] = useState<typeof mockGLBEData[0] | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isUploadDrawerOpen, setIsUploadDrawerOpen] = useState(false);
   
   // Filter state
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -572,6 +574,15 @@ export function GLBeCodesPage() {
     console.log('Opening audit log for GL BE Code:', beCode);
   };
 
+  const handleUpload = () => {
+    setIsUploadDrawerOpen(true);
+  };
+
+  const handleUploadComplete = (file: File) => {
+    console.log('File uploaded:', file.name);
+    // Add logic to process the uploaded file
+  };
+
   return (
     <>
       <div className="p-[40px]">
@@ -579,12 +590,21 @@ export function GLBeCodesPage() {
           {/* Table Header */}
           <div className="px-[24px] py-[16px] border-b border-border flex justify-between items-center">
             <h3 className="h3-component text-foreground">GL BE Codes</h3>
-            <button
-              onClick={handleAddNew}
-              className="px-[24px] py-[8px] border border-border rounded-md hover:bg-accent transition-colors"
-            >
-              <span className="caption">Add New</span>
-            </button>
+            <div className="flex gap-[12px]">
+              <button
+                onClick={handleUpload}
+                className="px-[24px] py-[8px] border border-border rounded-md hover:bg-accent transition-colors flex items-center gap-[8px]"
+              >
+                <Upload className="w-[16px] h-[16px] text-muted-foreground" />
+                <span className="caption">Upload</span>
+              </button>
+              <button
+                onClick={handleAddNew}
+                className="px-[24px] py-[8px] border border-border rounded-md hover:bg-accent transition-colors"
+              >
+                <span className="caption">Add New</span>
+              </button>
+            </div>
           </div>
 
           {/* Table */}
@@ -801,6 +821,12 @@ export function GLBeCodesPage() {
         onClose={() => setIsModalOpen(false)}
         mode={modalMode}
         data={selectedCode || undefined}
+      />
+
+      <UploadDrawer
+        isOpen={isUploadDrawerOpen}
+        onClose={() => setIsUploadDrawerOpen(false)}
+        onUploadComplete={handleUploadComplete}
       />
     </>
   );
